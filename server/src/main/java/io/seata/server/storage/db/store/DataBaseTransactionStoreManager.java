@@ -178,6 +178,7 @@ public class DataBaseTransactionStoreManager extends AbstractTransactionStoreMan
             states[i] = statuses[i].getCode();
         }
         //global transaction
+        // 每次一百个
         List<GlobalTransactionDO> globalTransactionDOs = logStore.queryGlobalTransactionDO(states, logQueryLimit);
         Map<String, List<BranchTransactionDO>> branchTransactionDOsMap = Collections.emptyMap();
         if (CollectionUtils.isNotEmpty(globalTransactionDOs)) {

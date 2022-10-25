@@ -190,6 +190,7 @@ public class SessionHelper {
 
     /**
      * End rollback failed.
+     * 结束回滚失败
      *
      * @param globalSession the global session
      * @param retryGlobal   the retry global

@@ -181,6 +181,7 @@ public class GlobalSession implements SessionLifecycle, SessionStorable {
 
     /**
      * prevent could not handle committing and rollbacking transaction
+     * 阻止无法处理提交和回滚事务：超过130秒
      * @return if true retry commit or roll back
      */
     public boolean isDeadSession() {
@@ -315,6 +316,7 @@ public class GlobalSession implements SessionLifecycle, SessionStorable {
     public void removeBranch(BranchSession branchSession) throws TransactionException {
         // do not unlock if global status in (Committing, CommitRetrying, AsyncCommitting),
         // because it's already unlocked in 'DefaultCore.commit()'
+        // 如果全局状态在(正在提交，CommitRetrying, asynccommitted)中不解锁，因为它已经在'DefaultCore.commit()'中解锁了
         if (status != Committing && status != CommitRetrying && status != AsyncCommitting) {
             if (!branchSession.unlock()) {
                 throw new TransactionException("Unlock branch lock failed, xid = " + this.xid + ", branchId = " + branchSession.getBranchId());

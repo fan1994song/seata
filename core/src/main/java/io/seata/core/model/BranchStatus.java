@@ -88,6 +88,7 @@ public enum BranchStatus {
     /**
      * The Phase two rollback failed unretryable.
      * description:Rollback logic is failed but NOT retryable.
+     * 阶段二回滚失败，不可重试。描述:回滚逻辑失败，但不可重试
      */
     PhaseTwo_RollbackFailed_Unretryable(10),
 

@@ -122,6 +122,7 @@ public class TransactionalTemplate {
             try {
                 // 2. If the tx role is 'GlobalTransactionRole.Launcher', send the request of beginTransaction to TC,
                 //    else do nothing. Of course, the hooks will still be triggered.
+                // 如果tx角色是'GlobalTransactionRole。启动器'，发送请求的beginTransaction到TC， //否则什么都不做。当然，钩子仍然会被触发
                 beginTransaction(txInfo, tx);
 
                 Object rs;
@@ -129,11 +130,13 @@ public class TransactionalTemplate {
                     // Do Your Business
                     rs = business.execute();
                 } catch (Throwable ex) {
+                    // 回滚所需的业务异常
                     // 3. The needed business exception to rollback.
                     completeTransactionAfterThrowing(txInfo, tx, ex);
                     throw ex;
                 }
 
+                // try成功提交
                 // 4. everything is fine, commit.
                 commitTransaction(tx, txInfo);
 

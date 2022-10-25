@@ -149,6 +149,9 @@ public class DefaultCoordinator extends AbstractTCInboundHandler implements Tran
     private static final boolean ROLLBACK_RETRY_TIMEOUT_UNLOCK_ENABLE = ConfigurationFactory.getInstance().getBoolean(
             ConfigurationKeys.ROLLBACK_RETRY_TIMEOUT_UNLOCK_ENABLE, DEFAULT_ROLLBACK_RETRY_TIMEOUT_UNLOCK_ENABLE);
 
+    /**
+     * 重试回滚的定时任务
+     */
     private final ScheduledThreadPoolExecutor retryRollbacking =
         new ScheduledThreadPoolExecutor(1, new NamedThreadFactory(RETRY_ROLLBACKING, 1));
 
@@ -355,6 +358,7 @@ public class DefaultCoordinator extends AbstractTCInboundHandler implements Tran
      * Handle retry rollbacking.
      */
     protected void handleRetryRollbacking() {
+        // 查询回滚状态的数据
         SessionCondition sessionCondition = new SessionCondition(rollbackingStatuses);
         sessionCondition.setLazyLoadBranch(true);
         Collection<GlobalSession> rollbackingSessions =
@@ -365,13 +369,17 @@ public class DefaultCoordinator extends AbstractTCInboundHandler implements Tran
         long now = System.currentTimeMillis();
         SessionHelper.forEach(rollbackingSessions, rollbackingSession -> {
             try {
+                // 若是回滚状态且是时间小于130秒，本轮次暂不执行
                 // prevent repeated rollback
                 if (rollbackingSession.getStatus() == GlobalStatus.Rollbacking
                     && !rollbackingSession.isDeadSession()) {
+                    // return 是continue的流程
                     // The function of this 'return' is 'continue'.
                     return;
                 }
+                // 校验下是否超时了
                 if (isRetryTimeout(now, MAX_ROLLBACK_RETRY_TIMEOUT.toMillis(), rollbackingSession.getBeginTime())) {
+                    // 默认回滚重试超时解锁启用
                     if (ROLLBACK_RETRY_TIMEOUT_UNLOCK_ENABLE) {
                         rollbackingSession.clean();
                     }
@@ -480,6 +488,13 @@ public class DefaultCoordinator extends AbstractTCInboundHandler implements Tran
         }
     }
 
+    /**
+     * 是否重试超时
+     * @param now
+     * @param timeout
+     * @param beginTime
+     * @return
+     */
     private boolean isRetryTimeout(long now, long timeout, long beginTime) {
         return timeout >= ALWAYS_RETRY_BOUNDARY && now - beginTime > timeout;
     }
@@ -488,6 +503,9 @@ public class DefaultCoordinator extends AbstractTCInboundHandler implements Tran
      * Init.
      */
     public void init() {
+        /**
+         * 每间隔一秒，发起回滚重试调用
+         */
         retryRollbacking.scheduleAtFixedRate(
             () -> SessionHolder.distributedLockAndExecute(RETRY_ROLLBACKING, this::handleRetryRollbacking), 0,
             ROLLBACKING_RETRY_PERIOD, TimeUnit.MILLISECONDS);

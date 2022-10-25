@@ -27,6 +27,7 @@ public class UUIDGenerator {
     private static volatile IdWorker idWorker;
 
     /**
+     * 使用雪花算法生成UUID
      * generate UUID using snowflake algorithm
      * @return UUID
      */

@@ -303,11 +303,13 @@ public class DefaultCore implements Core {
         // start rollback event
         MetricsPublisher.postSessionDoingEvent(globalSession, retrying);
 
+        // 若是SAGA模式
         if (globalSession.isSaga()) {
             success = getCore(BranchType.SAGA).doGlobalRollback(globalSession, retrying);
         } else {
             Boolean result = SessionHelper.forEach(globalSession.getReverseSortedBranches(), branchSession -> {
                 BranchStatus currentBranchStatus = branchSession.getStatus();
+                // 一阶段失败
                 if (currentBranchStatus == BranchStatus.PhaseOne_Failed) {
                     SessionHelper.removeBranch(globalSession, branchSession, !retrying);
                     return CONTINUE;
@@ -319,6 +321,7 @@ public class DefaultCore implements Core {
                         branchStatus = BranchStatus.PhaseTwo_Rollbacked;
                     }
                     switch (branchStatus) {
+                        // 以回滚，移除分支
                         case PhaseTwo_Rollbacked:
                             SessionHelper.removeBranch(globalSession, branchSession, !retrying);
                             LOGGER.info("Rollback branch transaction successfully, xid = {} branchId = {}", globalSession.getXid(), branchSession.getBranchId());

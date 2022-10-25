@@ -43,6 +43,7 @@ public class IdWorker {
 
     /**
      * The number of bits occupied by sequence
+     * 数列所占的比特数
      */
     private final int sequenceBits = 12;
 
@@ -61,6 +62,8 @@ public class IdWorker {
     private long workerId;
 
     /**
+     * 时间戳和序列混合在一个Long中
+     * 长*最高11位:不使用*中间41位:时间戳*最低12位:序列
      * timestamp and sequence mix in one Long
      * highest 11 bit: not used
      * middle  41 bit: timestamp
@@ -69,6 +72,7 @@ public class IdWorker {
     private AtomicLong timestampAndSequence;
 
     /**
+     * 掩码，帮助从长
      * mask that help to extract timestamp and sequence from a long
      */
     private final long timestampAndSequenceMask = ~(-1L << (timestampBits + sequenceBits));
@@ -79,10 +83,12 @@ public class IdWorker {
      */
     public IdWorker(Long workerId) {
         initTimestampAndSequence();
+        // 初始化机器ID
         initWorkerId(workerId);
     }
 
     /**
+     * 立即初始化第一个时间戳和序列
      * init first timestamp and sequence immediately
      */
     private void initTimestampAndSequence() {
@@ -107,6 +113,7 @@ public class IdWorker {
     }
 
     /**
+     * 类雪花算法,中间的时间戳应该是无效的，主要还是increase()自增，高位作为唯一校验
      * get next UUID(base on snowflake algorithm), which look like:
      * highest 1 bit: always 0
      * next   10 bit: workerId
@@ -124,6 +131,7 @@ public class IdWorker {
     /**
      * block current thread if the QPS of acquiring UUID is too high
      * that current sequence space is exhausted
+     * 如果获取UUID的QPS太高导致当前序列空间耗尽，则阻塞当前线程
      */
     private void waitIfNecessary() {
         long currentWithSequence = timestampAndSequence.get();
@@ -158,6 +166,7 @@ public class IdWorker {
     }
 
     /**
+     * 使用最低10位的可用MAC作为workerId
      * use lowest 10 bit of available MAC as workerId
      * @return workerId
      * @throws Exception when there is no available mac found

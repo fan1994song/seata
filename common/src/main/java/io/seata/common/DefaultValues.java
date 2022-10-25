@@ -252,10 +252,12 @@ public interface DefaultValues {
 
     /**
      * the const DEFAULT_MAX_ROLLBACK_RETRY_TIMEOUT
+     * 默认最大回滚重试超时时间
      */
     long DEFAULT_MAX_ROLLBACK_RETRY_TIMEOUT = 100;
 
     /**
+     * 默认回滚重试超时解锁启用
      * the const DEFAULT_ROLLBACK_RETRY_TIMEOUT_UNLOCK_ENABLE
      */
     boolean DEFAULT_ROLLBACK_RETRY_TIMEOUT_UNLOCK_ENABLE = false;
